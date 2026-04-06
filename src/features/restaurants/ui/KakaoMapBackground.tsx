@@ -61,12 +61,16 @@ const KakaoMapBackground = observer(() => {
   }
 
   return (
-    <Box className="fixed inset-0 z-0">
+    <Box className="fixed inset-0 z-0 pointer-events-auto">
       <Map
         center={center}
         style={{ width: "100%", height: "100%" }}
         level={4}
         onCreate={setMap}
+        onCenterChanged={(map) => setCenter({
+          lat: map.getCenter().getLat(),
+          lng: map.getCenter().getLng(),
+        })}
         onClick={() => restaurantStore.setSelectedId(null)}
       >
         {/* Built-in Kakao Map Controls */}
