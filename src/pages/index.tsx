@@ -14,6 +14,7 @@ import DealList from "@/features/deals/ui/DealList";
 import SubmitModal from "@/features/restaurants/ui/SubmitModal";
 import Toast from "@/components/common/Toast";
 import Button from "@/components/common/Button";
+import Typography from "@/components/common/Typography";
 import { uiStore, ViewMode } from "@/store/uiStore";
 
 // Dynamically import KakaoMapBackground to avoid SSR issues
@@ -22,12 +23,18 @@ const KakaoMapBackground = dynamic(
   { ssr: false }
 );
 
+import MapIcon from "@mui/icons-material/Map";
+import GroupsIcon from "@mui/icons-material/Groups";
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
+
 const Home = observer(() => {
-  const modes: { label: string; value: ViewMode }[] = [
-    { label: "지도", value: "map" },
-    { label: "거지방", value: "community" },
-    { label: "핫딜", value: "deal" },
+  const modes: { label: string; value: ViewMode; icon: React.ReactNode }[] = [
+    { label: "지도", value: "map", icon: <MapIcon fontSize="small" /> },
+    { label: "거지방", value: "community", icon: <GroupsIcon fontSize="small" /> },
+    { label: "핫딜", value: "deal", icon: <LocalFireDepartmentIcon fontSize="small" /> },
   ];
+
+  const activeIndex = modes.findIndex((m) => m.value === uiStore.mode);
 
   return (
     <AppShell>
@@ -65,28 +72,40 @@ const Home = observer(() => {
       </Box>
 
       {/* 
-         LAYER 3: Bottom Floating Navigation 
+         LAYER 3: Bottom Floating Navigation (Sliding Pill)
       */}
-      <Box className="fixed left-1/2 bottom-6 -translate-x-1/2 w-[min(26rem,calc(100vw-1.5rem))] flex items-center justify-between p-1.5 glass-card rounded-full bg-white/50 z-50 floating-panel shadow-2xl">
-        {modes.map((m) => (
-          <Button
-            key={m.value}
-            variant={uiStore.mode === m.value ? "contained" : "text"}
-            onClick={() => uiStore.setMode(m.value)}
-            className={`flex-1 min-h-[3rem] px-4 rounded-full font-bold transition-all ${
-              uiStore.mode === m.value 
-                ? "bg-slate-800 text-white shadow-lg" 
-                : "text-slate-600"
-            }`}
-          >
-            {m.label}
-          </Button>
-        ))}
+      <Box className="fixed left-1/2 bottom-8 -translate-x-1/2 z-50 pointer-events-auto text-[0.75rem] font-bold text-white/50">
+        <Box className="relative flex items-center p-1.5 bg-slate-900/80 backdrop-blur-2xl rounded-full border border-white/10 shadow-2xl overflow-hidden min-w-88">
+          {/* Sliding Indicator Background */}
+          <Box 
+            className="absolute top-1.5 bottom-1.5 bg-white/10 rounded-full transition-all duration-300 ease-in-out" 
+            style={{ 
+              left: `calc(1.5px + (100% - 3px) / ${modes.length} * ${activeIndex})`,
+              width: `calc((100% - 3px) / ${modes.length})` 
+            }}
+          />
+          
+          {modes.map((m, idx) => (
+            <Box
+              key={m.value}
+              onClick={() => uiStore.setMode(m.value)}
+              className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 cursor-pointer z-10 transition-colors duration-300 ${
+                uiStore.mode === m.value ? "text-white" : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Box className={`${uiStore.mode === m.value ? "scale-110" : "scale-100"} transition-transform`}>
+                {m.icon}
+              </Box>
+              <Typography className="text-[0.65rem] font-bold tracking-tighter">
+                {m.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
       </Box>
 
       {/* 
          LAYER 4: Hidden/Collapsible Content (Table, Feed, Deals)
-         These are activated via buttons or scroll.
       */}
       {uiStore.mode !== "map" && (
         <Box className="absolute inset-0 bg-white/95 backdrop-blur-xl z-40 overflow-auto pt-28 px-4 pb-24 floating-panel">
@@ -100,14 +119,15 @@ const Home = observer(() => {
       {/* 
          MANAGEMENT: Optional Bottom Drawer for Table (Admin/Expert view)
       */}
-      <Box className="absolute left-6 bottom-6 z-30 pointer-events-none">
-        <Box className="floating-panel">
+      <Box className="absolute left-6 bottom-8 z-30 pointer-events-none">
+        <Box className="floating-panel pointer-events-auto">
           <Button 
             variant="contained" 
-            className="bg-slate-800/90 text-white px-5 h-12 rounded-2xl shadow-xl hover:bg-slate-900"
+            className="bg-slate-900/80 backdrop-blur-xl text-white px-4 h-10 rounded-full shadow-2xl border border-white/10 hover:bg-slate-800 transition-all flex items-center gap-2 group"
             onClick={() => {/* Toggle Table Drawer */}}
           >
-            📋 식당 목록
+            <Box className="text-xs group-hover:rotate-12 transition-transform">📋</Box>
+            <Typography className="text-[0.75rem] font-bold">식당 목록</Typography>
           </Button>
         </Box>
       </Box>
