@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
-import { Map, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
+import { Map, MapMarker, CustomOverlayMap, ZoomControl, MapTypeControl } from "react-kakao-maps-sdk";
 import Box from "@/components/common/Box";
 import Typography from "@/components/common/Typography";
+import IconButton from "@mui/material/IconButton";
+import GpsFixedIcon from "@mui/icons-material/GpsFixed";
 import { restaurantStore } from "@/features/restaurants/model/restaurantStore";
+import { toastStore } from "@/store/toastStore";
 
 const KakaoMapBackground = observer(() => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [map, setMap] = useState<kakao.maps.Map | null>(null);
   const filtered = restaurantStore.filteredRestaurants;
 
   // Initialize map center (Seoul Hongdae area)
-  const defaultCenter = { lat: 37.558, lng: 126.925 };
+  const [center, setCenter] = useState({ lat: 37.558, lng: 126.925 });
 
   useEffect(() => {
     // Check if kakao map script is loaded
@@ -28,6 +32,26 @@ const KakaoMapBackground = observer(() => {
     }
   }, []);
 
+  const handleMyLocation = () => {
+    if (navigator.geolocation) {
+      toastStore.setLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCenter({ lat: latitude, lng: longitude });
+          toastStore.setLoading(false);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          toastStore.setLoading(false);
+          // Fallback or error message could go here
+        }
+      );
+    } else {
+      alert("이 브라우저에서는 위치 정보를 사용할 수 없습니다.");
+    }
+  };
+
   if (!isLoaded) {
     return (
       <Box className="fixed inset-0 bg-slate-100 flex items-center justify-center z-0">
@@ -39,11 +63,17 @@ const KakaoMapBackground = observer(() => {
   return (
     <Box className="fixed inset-0 z-0">
       <Map
-        center={defaultCenter}
+        center={center}
         style={{ width: "100%", height: "100%" }}
         level={4}
+        onCreate={setMap}
         onClick={() => restaurantStore.setSelectedId(null)}
       >
+        {/* Built-in Kakao Map Controls */}
+        <ZoomControl position={"BOTTOMRIGHT"} />
+        <MapTypeControl position={"TOPRIGHT"} />
+
+        {/* Markers and Overlays */}
         {filtered.map((r) => (
           <React.Fragment key={r.id}>
             <MapMarker
@@ -56,7 +86,6 @@ const KakaoMapBackground = observer(() => {
                 size: { width: 24, height: 35 },
               }}
             />
-            {/* Custom Overlay for restaurant name if needed */}
             {r.id === restaurantStore.selectedId && (
               <CustomOverlayMap position={{ lat: r.lat, lng: r.lng }} yAnchor={2.2}>
                 <Box className="bg-white px-3 py-1.5 rounded-full shadow-lg border border-red-200">
@@ -69,6 +98,17 @@ const KakaoMapBackground = observer(() => {
           </React.Fragment>
         ))}
       </Map>
+
+      {/* Floating My Location Button */}
+      <Box className="fixed right-6 bottom-32 z-10">
+        <IconButton 
+          onClick={handleMyLocation}
+          className="bg-white/80 backdrop-blur-md shadow-lg border border-white/50 hover:bg-white text-blue-600"
+          size="large"
+        >
+          <GpsFixedIcon />
+        </IconButton>
+      </Box>
     </Box>
   );
 });
