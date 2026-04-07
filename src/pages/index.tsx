@@ -39,7 +39,7 @@ const Home = observer(() => {
   return (
     <AppShell>
       <Head>
-        <title>한끼레이더 | 지도로 찾는 가성비 (Next.js)</title>
+        <title>Map Prototype | 지도로 찾는 가성비 (Next.js)</title>
       </Head>
 
       {/* 

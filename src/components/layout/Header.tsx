@@ -10,7 +10,7 @@ const Header = observer(() => {
     <Box className="floating-panel glass-card rounded-[20px] grid grid-cols-1 md:grid-cols-[auto_auto] gap-3 items-center p-2.5 shadow-2xl backdrop-blur-xl border-white/50">
       <Box className="flex items-center gap-2.5">
         <Box className="brand-chip h-9 px-3.5 rounded-full bg-slate-800 text-white flex items-center justify-center font-extrabold text-[1.2rem] min-w-34 tracking-tighter">
-          한끼레이더
+          Map Prototype
         </Box>
         <Box className="hidden sm:block">
           <Typography className="text-[0.6rem] font-bold text-slate-400 tracking-[0.05em] uppercase leading-none mb-0.5">

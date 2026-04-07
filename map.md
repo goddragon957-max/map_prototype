@@ -1,6 +1,6 @@
 # Map Prototype Core Rules
 
-이 문서는 **Map Prototype (한끼레이더)** 프로젝트의 핵심 기술 스택과 전용 아키텍처 원칙을 정의합니다.
+이 문서는 **Map Prototype** 프로젝트의 핵심 기술 스택과 전용 아키텍처 원칙을 정의합니다.
 
 ## 🛠 기술 스택 (Tech Stack)
 
