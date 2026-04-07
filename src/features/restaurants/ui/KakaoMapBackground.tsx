@@ -1,30 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
-import { Map, MapMarker, CustomOverlayMap, ZoomControl, MapTypeControl } from "react-kakao-maps-sdk";
+import { Map, CustomOverlayMap } from "react-kakao-maps-sdk";
 import Box from "@/components/common/Box";
 import Typography from "@/components/common/Typography";
-import IconButton from "@mui/material/IconButton";
-import GpsFixedIcon from "@mui/icons-material/GpsFixed";
-import { restaurantStore } from "@/features/restaurants/model/restaurantStore";
-import { toastStore } from "@/store/toastStore";
+import Button from "@/components/common/Button";
+import { mapStore, Spot } from "@/store/mapStore";
 
 const KakaoMapBackground = observer(() => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
-  const filtered = restaurantStore.filteredRestaurants;
-
-  // Initialize map center (Seoul Hongdae area)
-  const [center, setCenter] = useState({ lat: 37.558, lng: 126.925 });
 
   useEffect(() => {
-    // Check if kakao map script is loaded
     if (window.kakao && window.kakao.maps) {
-      setIsLoaded(true);
+      window.kakao.maps.load(() => {
+        setIsLoaded(true);
+      });
     } else {
-      // Small delay to wait for script from _document.tsx
       const timer = setInterval(() => {
         if (window.kakao && window.kakao.maps) {
-          setIsLoaded(true);
+          window.kakao.maps.load(() => {
+            setIsLoaded(true);
+          });
           clearInterval(timer);
         }
       }, 500);
@@ -32,87 +28,106 @@ const KakaoMapBackground = observer(() => {
     }
   }, []);
 
-  const handleMyLocation = () => {
+  const goMyLocation = () => {
     if (navigator.geolocation) {
-      toastStore.setLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setCenter({ lat: latitude, lng: longitude });
-          toastStore.setLoading(false);
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          toastStore.setLoading(false);
-          // Fallback or error message could go here
-        }
-      );
-    } else {
-      alert("이 브라우저에서는 위치 정보를 사용할 수 없습니다.");
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        mapStore.setCenter(latitude, longitude);
+      });
     }
   };
 
   if (!isLoaded) {
     return (
-      <Box className="fixed inset-0 bg-slate-100 flex items-center justify-center z-0">
-        <Typography color="textSecondary">지도를 불러오는 중입니다...</Typography>
+      <Box className="fixed inset-0 bg-[#0d0f14] flex items-center justify-center z-0">
+        <Typography className="text-text2 animate-pulse">지도를 불러오는 중입니다...</Typography>
       </Box>
     );
   }
 
   return (
     <Box className="fixed inset-0 z-0 pointer-events-auto">
+      {/* Map Overlay Styling (Radial Neon Glow) */}
+      <Box 
+        className="absolute inset-0 z-10 pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse at 30% 40%, rgba(110,231,183,0.04) 0%, transparent 60%),
+            radial-gradient(ellipse at 70% 60%, rgba(56,189,248,0.04) 0%, transparent 60%)
+          `
+        }}
+      />
+      
+      {/* Top Fade Gradient */}
+      <Box className="absolute top-0 left-0 right-0 h-40 bg-linear-to-b from-bg/40 to-transparent z-40 pointer-events-none" />
+      
       <Map
-        center={center}
+        center={mapStore.center}
         style={{ width: "100%", height: "100%" }}
         level={4}
         onCreate={setMap}
-        onCenterChanged={(map) => setCenter({
-          lat: map.getCenter().getLat(),
-          lng: map.getCenter().getLng(),
-        })}
-        onClick={() => restaurantStore.setSelectedId(null)}
+        onClick={() => mapStore.setSelectedSpot(null)}
       >
-        {/* Built-in Kakao Map Controls */}
-        <ZoomControl position={"BOTTOMRIGHT"} />
-        <MapTypeControl position={"TOPRIGHT"} />
-
-        {/* Markers and Overlays */}
-        {filtered.map((r) => (
-          <React.Fragment key={r.id}>
-            <MapMarker
-              position={{ lat: r.lat, lng: r.lng }}
-              onClick={() => restaurantStore.setSelectedId(r.id)}
-              image={{
-                src: r.id === restaurantStore.selectedId 
-                  ? "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png" 
-                  : "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-                size: { width: 24, height: 35 },
-              }}
-            />
-            {r.id === restaurantStore.selectedId && (
-              <CustomOverlayMap position={{ lat: r.lat, lng: r.lng }} yAnchor={2.2}>
-                <Box className="bg-white px-3 py-1.5 rounded-full shadow-lg border border-red-200">
-                  <Typography weight="bold" className="text-sm text-red-600 whitespace-nowrap">
-                    {r.name}
-                  </Typography>
-                </Box>
-              </CustomOverlayMap>
-            )}
-          </React.Fragment>
+        {mapStore.spots.map((spot) => (
+          <CustomOverlayMap 
+            key={spot.id} 
+            position={{ lat: spot.lat, lng: spot.lng }} 
+            yAnchor={1.2}
+          >
+            <Box 
+              onClick={() => mapStore.setSelectedSpot(spot)}
+              className={`marker-bubble flex items-center gap-1.5 px-3 py-1.5 rounded-full border-[1.5px] text-[12px] font-bold whitespace-nowrap shadow-sm backdrop-blur-[10px] cursor-pointer transition-all relative transform hover:scale-110 active:scale-95 ${
+                mapStore.selectedSpot?.id === spot.id ? "scale-108 ring-4 ring-accent/20 shadow-xl z-20" : "z-10"
+              } ${
+                spot.color === 'green' ? 'border-accent text-accent' :
+                spot.color === 'blue' ? 'border-accent2 text-accent2' :
+                spot.color === 'pink' ? 'border-accent3 text-accent3' :
+                'border-warn text-warn'
+              } bg-surface`}
+            >
+              <span className="text-[14px]">{spot.emoji}</span> {spot.price}
+              <Box 
+                className={`absolute bottom-[-6.5px] left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-inherit`}
+                style={{ borderTopColor: 'inherit' }}
+              />
+            </Box>
+          </CustomOverlayMap>
         ))}
       </Map>
 
-      {/* Floating My Location Button */}
-      <Box className="fixed right-6 bottom-32 z-10">
-        <IconButton 
-          onClick={handleMyLocation}
-          className="bg-white/80 backdrop-blur-md shadow-lg border border-white/50 hover:bg-white text-blue-600"
-          size="large"
+      {/* Map Grid / Overlay Styling */}
+      <Box className="absolute inset-0 pointer-events-none z-1 bg-linear-to-b from-bg/40 to-transparent h-40" />
+
+      {/* Map Controls */}
+      <Box className="fixed right-4 bottom-16 z-50 flex flex-col gap-1.5">
+        <Button 
+          onClick={() => map?.setLevel(map.getLevel() - 1)}
+          className="w-10 h-10 min-w-0 p-0 rounded-lg bg-surface border border-border text-text hover:border-accent hover:text-accent shadow-sm"
         >
-          <GpsFixedIcon />
-        </IconButton>
+          +
+        </Button>
+        <Button 
+          onClick={() => map?.setLevel(map.getLevel() + 1)}
+          className="w-10 h-10 min-w-0 p-0 rounded-lg bg-surface border border-border text-text hover:border-accent hover:text-accent shadow-sm"
+        >
+          −
+        </Button>
+        <Button 
+          onClick={goMyLocation}
+          className="w-10 h-10 min-w-0 p-0 rounded-lg bg-surface border border-accent2 text-accent2 hover:bg-surface2 transition-all shadow-sm"
+        >
+          ◎
+        </Button>
       </Box>
+
+      <style jsx global>{`
+        /* Minimal custom styles to bridge tailwind for pseudo-elements if needed */
+        .marker-bubble::after {
+          content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+          border: 5px solid transparent; border-top-color: inherit;
+          border-bottom: none;
+        }
+      `}</style>
     </Box>
   );
 });
