@@ -6,13 +6,13 @@ import { uiStore, ViewMode } from '@/store/uiStore';
 const BottomTab = observer(() => {
   const tabs: { label: string; value: ViewMode; icon: string }[] = [
     { label: '맵', value: 'map', icon: '🗺' },
-    { label: '목록', value: 'community', icon: '☰' }, // Use community as proxy for list for now
-    { label: '랭킹', value: 'deal', icon: '🏆' }, // Use deal as proxy for ranking for now
+    { label: '목록', value: 'list', icon: '☰' },
+    { label: '랭킹', value: 'rank', icon: '🏆' },
     { label: '커뮤니티', value: 'community', icon: '💬' },
   ];
 
   return (
-    <Box className="fixed bottom-0 left-0 right-0 z-100 h-[50px] bg-[#0d0f14]/95 backdrop-blur-[20px] border-t border-border flex items-center justify-center">
+    <Box className="fixed bottom-0 left-0 right-0 z-100 h-[50px] bg-bg/95 backdrop-blur-[20px] border-t border-border flex items-center justify-center">
       {tabs.map((tab, idx) => (
         <Box
           key={idx}

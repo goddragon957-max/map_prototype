@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx";
 
-export type ViewMode = "map" | "community" | "deal";
+export type ViewMode = "map" | "list" | "rank" | "community";
 
 export const createUiStore = () => {
   const store = {

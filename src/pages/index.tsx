@@ -9,6 +9,9 @@ import Header from "@/components/layout/Header";
 import BottomTab from "@/components/common/BottomTab";
 import RightPanel from "@/components/common/RightPanel";
 import InfoWindow from "@/features/restaurants/ui/InfoWindow";
+import SpotGrid from "@/features/restaurants/ui/SpotGrid";
+import RestaurantRanking from "@/features/restaurants/ui/RestaurantRanking";
+import CommunityFeed from "@/features/community/ui/CommunityFeed";
 import SubmitModal from "@/features/restaurants/ui/SubmitModal";
 import Toast from "@/components/common/Toast";
 import { uiStore } from "@/store/uiStore";
@@ -43,37 +46,26 @@ const Home = observer(() => {
           </>
         )}
 
-        {/* Layer 2: List/Ranking/Community Views (Proxied for now) */}
+        {/* Layer 2: List/Ranking/Community Views (Refined) */}
         {uiStore.mode !== "map" && (
           <Box className="absolute inset-0 z-40 bg-bg overflow-y-auto p-4 animate-fadeIn">
             <Box className="max-w-[1140px] mx-auto py-8">
-              <Box className="mb-8">
-                <Typography className="text-[24px] font-extrabold text-text mb-2">
-                  {uiStore.mode === 'community' ? '💬 커뮤니티' : '🏆 실시간 랭킹'}
+              <Box className="mb-10 px-1">
+                <Typography className="text-[28px] font-extrabold text-text mb-2 tracking-tight uppercase">
+                  {uiStore.mode === 'community' ? '💬 커뮤니티' : 
+                   uiStore.mode === 'rank' ? '🏆 실시간 랭킹' : '☰ 전체 목록'}
                 </Typography>
-                <Typography className="text-text3">
-                    {uiStore.mode === 'community' ? '이웃들과 가성비 정보를 공유해 보세요.' : '이번 주 가장 핫한 가성비 스팟입니다.'}
+                <Typography className="text-[14px] text-text3 font-medium">
+                    {uiStore.mode === 'community' ? '이웃들과 가성비 명소 정보를 실시간으로 공유해 보세요.' : 
+                     uiStore.mode === 'rank' ? '이번 주 유저들에게 가장 사랑받은 가성비 스팟입니다.' : 
+                     '내 주변 모든 가성비 스팟을 한눈에 확인하세요.'}
                 </Typography>
               </Box>
               
-              {/* Dummy content for list view */}
-              <Box className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Box key={i} className="glass-card p-4 hover:border-accent transition-all cursor-pointer">
-                    <Box className="w-full h-40 bg-surface2 rounded-lg mb-3 flex items-center justify-center text-4xl">
-                      {i % 2 === 0 ? '🍜' : '☕'}
-                    </Box>
-                    <Typography className="text-[16px] font-bold mb-1">가상의 스팟 #{i}</Typography>
-                    <Typography className="text-[12px] text-text3 mb-3">서울시 마포구 어느 길가</Typography>
-                    <Box className="flex justify-between items-center">
-                        <Typography className="text-accent font-bold">5,000원</Typography>
-                        <Box className="flex items-center gap-1.5 text-[11px] text-text3">
-                            <span>⭐ 4.5</span>
-                            <span>💬 12</span>
-                        </Box>
-                    </Box>
-                  </Box>
-                ))}
+              <Box className="pb-12">
+                {uiStore.mode === 'list' && <SpotGrid />}
+                {uiStore.mode === 'rank' && <RestaurantRanking />}
+                {uiStore.mode === 'community' && <CommunityFeed />}
               </Box>
             </Box>
           </Box>

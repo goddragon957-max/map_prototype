@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스팟맵 — 내 주변 숨은 명소</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a22;
+    --surface2: #1e2430;
+    --border: #2a3040;
+    --accent: #6ee7b7;
+    --accent2: #38bdf8;
+    --accent3: #f472b6;
+    --warn: #fbbf24;
+    --text: #e8edf5;
+    --text2: #8b95a8;
+    --text3: #5a6377;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.5);
+    --shadow-sm: 0 2px 12px rgba(0,0,0,0.3);
+    --font: 'Pretendard', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+    height: 34px; overflow: hidden; display: flex; align-items: center;
+  }
+  .ticker-label {
+    flex-shrink: 0; padding: 0 16px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    color: #0d0f14; text-transform: uppercase; white-space: nowrap;
+    background: rgba(0,0,0,0.15); height: 100%; display: flex; align-items: center;
+  }
+  .ticker-track {
+    display: flex; overflow: hidden; flex: 1;
+  }
+  .ticker-content {
+    display: flex; gap: 80px; white-space: nowrap;
+    animation: ticker 28s linear infinite;
+    font-size: 12px; font-weight: 500; color: #0d0f14;
+  }
+  .ticker-content span::before { content: "✦  "; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ── HEADER ── */
+  .header {
+    position: fixed; top: 34px; left: 0; right: 0; z-index: 100;
+    height: 60px;
+    background: rgba(13,15,20,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 16px; gap: 10px;
+  }
+  .logo {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    white-space: nowrap; margin-right: 4px;
+  }
+  .logo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 10px; flex-shrink: 0; }
+
+  /* Filter chips */
+  .filter-chips { display: flex; gap: 6px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+  .filter-chips::-webkit-scrollbar { display: none; }
+  .chip {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1px solid var(--border); background: var(--surface);
+    cursor: pointer; white-space: nowrap; transition: all .2s;
+    color: var(--text2);
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #0d0f14; }
+  .chip .chip-x { opacity: .6; font-size: 10px; }
+  .chip-filter-btn {
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1px solid var(--border); background: var(--surface2);
+    cursor: pointer; color: var(--text); white-space: nowrap; transition: all .2s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .chip-filter-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* header right */
+  .header-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: var(--radius-sm);
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px; transition: all .2s; color: var(--text);
+  }
+  .icon-btn:hover { border-color: var(--accent2); background: var(--surface2); }
+  .btn-report {
+    padding: 7px 14px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; color: #0d0f14; font-size: 12px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: opacity .2s;
+  }
+  .btn-report:hover { opacity: .85; }
+  .btn-coffee {
+    padding: 7px 14px; border-radius: var(--radius-sm);
+    background: transparent; border: 1px solid var(--warn);
+    color: var(--warn); font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: all .2s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn-coffee:hover { background: var(--warn); color: #0d0f14; }
+
+  /* ── MAP AREA ── */
+  .map-container {
+    position: fixed; top: 94px; left: 0; right: 0; bottom: 50px;
+    background: #141820;
+    overflow: hidden;
+  }
+  .map-bg {
+    width: 100%; height: 100%;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(110,231,183,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 60%, rgba(56,189,248,0.04) 0%, transparent 60%),
+      #141820;
+    position: relative; overflow: hidden;
+  }
+
+  /* Fake map grid */
+  .map-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  /* Road lines */
+  .road {
+    position: absolute; background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+  }
+  .road.h { height: 8px; left: 0; right: 0; }
+  .road.v { width: 8px; top: 0; bottom: 0; }
+  .road.main { background: rgba(255,255,255,0.1); }
+  .road.h.main { height: 14px; }
+  .road.v.main { width: 14px; }
+
+  /* Area blocks */
+  .area-block {
+    position: absolute; border-radius: 6px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* ── MARKERS ── */
+  .marker {
+    position: absolute; transform: translate(-50%, -100%);
+    cursor: pointer; z-index: 10;
+    transition: transform .2s;
+  }
+  .marker:hover { transform: translate(-50%, -100%) scale(1.1); z-index: 20; }
+  .marker-bubble {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px; font-weight: 700;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 5px;
+    backdrop-filter: blur(10px);
+    transition: all .2s;
+    position: relative;
+  }
+  .marker-bubble::after {
+    content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    border: 5px solid transparent; border-top-color: var(--border);
+    border-bottom: none;
+  }
+  .marker-bubble.green { border-color: var(--accent); color: var(--accent); }
+  .marker-bubble.green::after { border-top-color: var(--accent); }
+  .marker-bubble.blue { border-color: var(--accent2); color: var(--accent2); }
+  .marker-bubble.blue::after { border-top-color: var(--accent2); }
+  .marker-bubble.pink { border-color: var(--accent3); color: var(--accent3); }
+  .marker-bubble.pink::after { border-top-color: var(--accent3); }
+  .marker-bubble.warn { border-color: var(--warn); color: var(--warn); }
+  .marker-bubble.warn::after { border-top-color: var(--warn); }
+  .marker.active .marker-bubble {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 3px rgba(110,231,183,0.2), var(--shadow);
+  }
+
+  /* My location pulse */
+  .my-location {
+    position: absolute; transform: translate(-50%,-50%);
+    width: 14px; height: 14px;
+  }
+  .my-location-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent2); border: 2.5px solid white;
+    box-shadow: 0 0 0 0 rgba(56,189,248,0.4);
+    animation: pulse 2s infinite;
+  }
+  .my-location-ring {
+    position: absolute; inset: -12px; border-radius: 50%;
+    border: 1.5px solid rgba(56,189,248,0.25);
+    animation: ring 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(56,189,248,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(56,189,248,0); }
+  }
+  @keyframes ring { 0% { transform: scale(1); opacity:.6; } 100% { transform: scale(1.8); opacity:0; } }
+
+  /* ── MAP CONTROLS ── */
+  .map-controls {
+    position: absolute; right: 16px; bottom: 16px;
+    display: flex; flex-direction: column; gap: 6px; z-index: 50;
+  }
+  .map-ctrl-btn {
+    width: 40px; height: 40px; border-radius: var(--radius-sm);
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; transition: all .2s;
+    color: var(--text); box-shadow: var(--shadow-sm);
+  }
+  .map-ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .map-ctrl-btn.locate { color: var(--accent2); border-color: var(--accent2); }
+
+  /* ── LIST BUTTON ── */
+  .list-btn {
+    position: absolute; left: 16px; bottom: 16px; z-index: 50;
+    padding: 10px 18px; border-radius: 24px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    box-shadow: var(--shadow-sm); transition: all .2s;
+  }
+  .list-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    position: absolute; right: 16px; top: 16px;
+    width: 270px; z-index: 50;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .panel-card {
+    background: rgba(22,26,34,0.92);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .panel-header {
+    padding: 12px 14px 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-size: 12px; font-weight: 700; letter-spacing: .5px;
+    color: var(--text2); text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .panel-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .panel-more { font-size: 11px; color: var(--text3); cursor: pointer; }
+  .panel-more:hover { color: var(--accent); }
+
+  .spot-item {
+    padding: 10px 14px; display: flex; gap: 10px; align-items: center;
+    border-bottom: 1px solid rgba(42,48,64,0.5);
+    cursor: pointer; transition: background .15s;
+  }
+  .spot-item:last-child { border-bottom: none; }
+  .spot-item:hover { background: rgba(110,231,183,0.04); }
+  .spot-thumb {
+    width: 44px; height: 44px; border-radius: var(--radius-sm);
+    background: var(--surface2); flex-shrink: 0; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; border: 1px solid var(--border);
+  }
+  .spot-info { flex: 1; min-width: 0; }
+  .spot-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .spot-meta { font-size: 11px; color: var(--text3); display: flex; gap: 6px; align-items: center; }
+  .spot-tag {
+    font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 10px;
+    background: rgba(110,231,183,0.12); color: var(--accent);
+  }
+  .spot-tag.blue { background: rgba(56,189,248,0.12); color: var(--accent2); }
+  .spot-tag.pink { background: rgba(244,114,182,0.12); color: var(--accent3); }
+  .spot-price { font-size: 12px; font-weight: 700; color: var(--warn); margin-left: auto; flex-shrink: 0; }
+
+  /* Ad banner */
+  .ad-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .ad-banner:hover { border-color: var(--accent3); }
+  .ad-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .ad-content { font-size: 12px; color: var(--text2); font-weight: 500; }
+
+  /* ── BOTTOM TAB ── */
+  .bottom-tab {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    height: 50px;
+    background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; gap: 0;
+  }
+  .tab-btn {
+    flex: 1; max-width: 140px; height: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 13px; font-weight: 600; color: var(--text3);
+    cursor: pointer; transition: color .2s;
+    border: none; background: none;
+    position: relative;
+  }
+  .tab-btn.active { color: var(--accent); }
+  .tab-btn.active::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 32px; height: 2px; background: var(--accent); border-radius: 2px 2px 0 0;
+  }
+
+  /* ── MODALS ── */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    backdrop-filter: blur(4px); z-index: 300;
+    display: none; align-items: center; justify-content: center;
+    animation: fadeIn .2s;
+  }
+  .overlay.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px;
+    width: 90%; max-width: 460px;
+    box-shadow: var(--shadow);
+    animation: slideUp .25s ease-out;
+    max-height: 80vh; overflow-y: auto;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 22px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; display: block; letter-spacing: .3px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 11px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: var(--font); font-size: 14px; outline: none;
+    transition: border-color .2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { resize: vertical; min-height: 90px; }
+  .form-select { appearance: none; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-primary {
+    flex: 1; padding: 12px; border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; color: #0d0f14; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: opacity .2s;
+  }
+  .btn-primary:hover { opacity: .85; }
+  .btn-cancel {
+    padding: 12px 20px; border-radius: var(--radius-sm);
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text2); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-cancel:hover { border-color: var(--text); color: var(--text); }
+  .modal-close {
+    float: right; background: none; border: none;
+    color: var(--text3); font-size: 20px; cursor: pointer;
+    margin-top: -4px;
+  }
+
+  /* ── INFO WINDOW ── */
+  .info-window {
+    position: absolute; z-index: 80; bottom: 70px; left: 50%; transform: translateX(-50%);
+    width: min(380px, calc(100vw - 32px));
+    background: rgba(22,26,34,0.98);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    display: none;
+    animation: slideUp .2s ease-out;
+    overflow: hidden;
+  }
+  .info-window.show { display: block; }
+  .iw-img {
+    width: 100%; height: 140px;
+    background: linear-gradient(135deg, var(--surface2), var(--bg));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; position: relative;
+  }
+  .iw-tag {
+    position: absolute; top: 10px; left: 10px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    background: var(--accent); color: #0d0f14;
+  }
+  .iw-body { padding: 16px; }
+  .iw-name { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+  .iw-addr { font-size: 12px; color: var(--text2); margin-bottom: 10px; display: flex; gap: 4px; align-items: center; }
+  .iw-stats { display: flex; gap: 16px; margin-bottom: 12px; }
+  .iw-stat { text-align: center; }
+  .iw-stat-val { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .iw-stat-lbl { font-size: 10px; color: var(--text3); }
+  .iw-desc { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 12px; }
+  .iw-actions { display: flex; gap: 8px; }
+  .iw-btn {
+    flex: 1; padding: 9px; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s;
+    text-align: center;
+  }
+  .iw-btn.primary { background: var(--accent); color: #0d0f14; border: none; }
+  .iw-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+  .iw-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .iw-close {
+    position: absolute; top: 10px; right: 10px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,0,0,.4); border: none; color: white;
+    cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── SEARCH BAR ── */
+  .search-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    backdrop-filter: blur(8px); z-index: 400;
+    display: none; flex-direction: column;
+    padding: 20px 16px;
+  }
+  .search-overlay.show { display: flex; }
+  .search-box {
+    display: flex; gap: 10px; align-items: center;
+    background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: var(--radius); padding: 12px 16px;
+    margin-top: 44px;
+  }
+  .search-box input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text); font-size: 15px; font-family: var(--font);
+  }
+  .search-results { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .search-result-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 16px;
+    cursor: pointer; transition: border-color .15s; display: flex; gap: 12px; align-items: center;
+  }
+  .search-result-item:hover { border-color: var(--accent); }
+  .sr-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .sr-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .sr-addr { font-size: 12px; color: var(--text3); }
+
+  /* Filter modal special */
+  .filter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .filter-option {
+    padding: 10px 8px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); text-align: center;
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s;
+    color: var(--text2);
+  }
+  .filter-option:hover, .filter-option.sel { border-color: var(--accent); color: var(--accent); background: rgba(110,231,183,0.06); }
+  .filter-section-title { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+
+  /* RANKING TAB */
+  .tab-content { position: absolute; inset: 0; overflow-y: auto; display: none; padding: 16px; }
+  .tab-content.active { display: block; }
+  .rank-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    display: flex; gap: 14px; align-items: center;
+    margin-bottom: 8px; cursor: pointer; transition: border-color .15s;
+  }
+  .rank-item:hover { border-color: var(--accent); }
+  .rank-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; flex-shrink: 0;
+  }
+  .rank-num.gold { background: rgba(251,191,36,0.2); color: var(--warn); }
+  .rank-num.silver { background: rgba(148,163,184,0.2); color: #94a3b8; }
+  .rank-num.bronze { background: rgba(180,120,80,0.2); color: #b47850; }
+  .rank-num.normal { background: var(--surface2); color: var(--text3); }
+  .rank-thumb { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .rank-info { flex: 1; }
+  .rank-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .rank-score { font-size: 12px; color: var(--text3); display: flex; gap: 10px; }
+  .rank-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(110,231,183,0.12); color: var(--accent); }
+
+  /* List view */
+  .list-content {
+    position: absolute; inset: 0; overflow-y: auto;
+    padding: 16px; display: none; background: var(--bg);
+  }
+  .list-content.active { display: block; }
+  .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .list-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; cursor: pointer;
+    transition: transform .2s, border-color .2s;
+  }
+  .list-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .list-card-img { height: 120px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 40px; }
+  .list-card-body { padding: 12px; }
+  .list-card-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .list-card-meta { font-size: 12px; color: var(--text3); display: flex; justify-content: space-between; align-items: center; }
+
+  /* Community tab */
+  .community-wrap { padding: 16px; }
+  .comm-banner {
+    background: linear-gradient(135deg, rgba(110,231,183,0.15), rgba(56,189,248,0.15));
+    border: 1px solid rgba(110,231,183,0.3);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+    text-align: center; cursor: pointer; transition: opacity .2s;
+  }
+  .comm-banner:hover { opacity: .85; }
+  .comm-banner-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .comm-banner-sub { font-size: 13px; color: var(--text2); }
+  .post-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px;
+    margin-bottom: 8px; cursor: pointer; transition: border-color .15s;
+  }
+  .post-item:hover { border-color: var(--accent2); }
+  .post-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .post-meta { font-size: 12px; color: var(--text3); display: flex; gap: 10px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 24px; padding: 10px 20px;
+    font-size: 13px; font-weight: 500; color: var(--text);
+    opacity: 0; transition: all .3s; z-index: 999;
+    box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-label">📢 공지</div>
+  <div class="ticker-track">
+    <div class="ticker-content" id="ticker">
+      <span>스팟맵에 오신 것을 환영합니다!</span>
+      <span>새로운 스팟은 관리자 승인 후 지도에 반영됩니다</span>
+      <span>허위 정보 제보 시 이용이 제한될 수 있습니다</span>
+      <span>좋은 스팟을 발견하셨나요? 제보하기 버튼을 눌러주세요!</span>
+      <span>스팟맵에 오신 것을 환영합니다!</span>
+      <span>새로운 스팟은 관리자 승인 후 지도에 반영됩니다</span>
+      <span>허위 정보 제보 시 이용이 제한될 수 있습니다</span>
+      <span>좋은 스팟을 발견하셨나요? 제보하기 버튼을 눌러주세요!</span>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-dot"></div>
+  <div class="logo">스팟맵</div>
+
+  <div class="filter-chips" id="filterChips">
+    <button class="chip-filter-btn" onclick="openFilter()">⚙ 필터링</button>
+    <div class="chip active" onclick="toggleChip(this)">음식점 <span class="chip-x">✕</span></div>
+    <div class="chip" onclick="toggleChip(this)">카페</div>
+    <div class="chip" onclick="toggleChip(this)">저가 메뉴</div>
+    <div class="chip active" onclick="toggleChip(this)">~7,000원 <span class="chip-x">✕</span></div>
+    <div class="chip" onclick="toggleChip(this)">강남구</div>
+    <div class="chip" onclick="toggleChip(this)">주차 가능</div>
+    <div class="chip" onclick="toggleChip(this)">24시간</div>
+  </div>
+
+  <div class="header-right">
+    <button class="icon-btn" onclick="openSearch()" title="검색">🔍</button>
+    <button class="btn-coffee" onclick="showToast('☕ 토스 후원 페이지로 이동합니다!')">☕ 커피 후원</button>
+    <button class="btn-report" onclick="openReport()">+ 제보하기</button>
+  </div>
+</div>
+
+<!-- MAP CONTAINER -->
+<div class="map-container" id="mapContainer">
+  <div class="map-bg" id="mapBg">
+    <div class="map-grid"></div>
+
+    <!-- Roads -->
+    <div class="road h main" style="top:35%"></div>
+    <div class="road h main" style="top:62%"></div>
+    <div class="road h" style="top:20%"></div>
+    <div class="road h" style="top:50%"></div>
+    <div class="road h" style="top:78%"></div>
+    <div class="road v main" style="left:40%"></div>
+    <div class="road v main" style="left:65%"></div>
+    <div class="road v" style="left:20%"></div>
+    <div class="road v" style="left:55%"></div>
+    <div class="road v" style="left:82%"></div>
+
+    <!-- Area blocks -->
+    <div class="area-block" style="left:22%;top:22%;width:15%;height:10%;"></div>
+    <div class="area-block" style="left:42%;top:40%;width:20%;height:18%;"></div>
+    <div class="area-block" style="left:67%;top:25%;width:12%;height:8%;"></div>
+    <div class="area-block" style="left:15%;top:65%;width:22%;height:12%;"></div>
+    <div class="area-block" style="left:67%;top:65%;width:14%;height:11%;"></div>
+
+    <!-- Markers -->
+    <div class="marker" style="left:28%;top:30%" onclick="openInfo(0)">
+      <div class="marker-bubble green">🍜 5,000원</div>
+    </div>
+    <div class="marker active" style="left:48%;top:45%" onclick="openInfo(1)">
+      <div class="marker-bubble green">🍱 6,500원</div>
+    </div>
+    <div class="marker" style="left:60%;top:38%" onclick="openInfo(2)">
+      <div class="marker-bubble blue">☕ 3,500원</div>
+    </div>
+    <div class="marker" style="left:35%;top:58%" onclick="openInfo(3)">
+      <div class="marker-bubble warn">🍛 4,000원</div>
+    </div>
+    <div class="marker" style="left:72%;top:55%" onclick="openInfo(4)">
+      <div class="marker-bubble pink">🥗 7,000원</div>
+    </div>
+    <div class="marker" style="left:20%;top:72%" onclick="openInfo(5)">
+      <div class="marker-bubble green">🍜 2,500원</div>
+    </div>
+    <div class="marker" style="left:55%;top:70%" onclick="openInfo(6)">
+      <div class="marker-bubble blue">🧋 4,500원</div>
+    </div>
+    <div class="marker" style="left:80%;top:42%" onclick="openInfo(7)">
+      <div class="marker-bubble warn">🍔 5,500원</div>
+    </div>
+    <div class="marker" style="left:42%;top:25%" onclick="openInfo(8)">
+      <div class="marker-bubble pink">🍣 6,000원</div>
+    </div>
+
+    <!-- My location -->
+    <div class="my-location" id="myLoc" style="left:48%;top:62%">
+      <div class="my-location-dot"></div>
+      <div class="my-location-ring"></div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title"><span class="dot"></span>최근 등록 스팟</div>
+          <div class="panel-more" onclick="showToast('전체 목록을 불러오는 중...')">전체보기 →</div>
+        </div>
+        <div class="spot-item" onclick="openInfo(0)">
+          <div class="spot-thumb">🍜</div>
+          <div class="spot-info">
+            <div class="spot-name">옛날국수집</div>
+            <div class="spot-meta"><span class="spot-tag">국수</span> 서울 마포구</div>
+          </div>
+          <div class="spot-price">5,000원</div>
+        </div>
+        <div class="spot-item" onclick="openInfo(1)">
+          <div class="spot-thumb">🍱</div>
+          <div class="spot-info">
+            <div class="spot-name">알뜰도시락</div>
+            <div class="spot-meta"><span class="spot-tag blue">도시락</span> 서울 종로구</div>
+          </div>
+          <div class="spot-price">6,500원</div>
+        </div>
+        <div class="spot-item" onclick="openInfo(2)">
+          <div class="spot-thumb">☕</div>
+          <div class="spot-info">
+            <div class="spot-name">동네카페 한잔</div>
+            <div class="spot-meta"><span class="spot-tag pink">카페</span> 서울 은평구</div>
+          </div>
+          <div class="spot-price">3,500원</div>
+        </div>
+        <div class="spot-item" onclick="openInfo(5)">
+          <div class="spot-thumb">🍜</div>
+          <div class="spot-info">
+            <div class="spot-name">2500원 라면집</div>
+            <div class="spot-meta"><span class="spot-tag">라면</span> 서울 동작구</div>
+          </div>
+          <div class="spot-price">2,500원</div>
+        </div>
+      </div>
+
+      <!-- Ad -->
+      <div class="ad-banner" onclick="showToast('광고 영역입니다 (Google AdSense 연동 가능)')">
+        <div class="ad-label">AD</div>
+        <div class="ad-content">📦 이 자리는 광고 영역입니다<br><span style="font-size:11px;color:var(--text3)">문의: admin@spotmap.kr</span></div>
+      </div>
+    </div>
+
+    <!-- Map Controls -->
+    <div class="map-controls">
+      <button class="map-ctrl-btn" onclick="showToast('확대')">+</button>
+      <button class="map-ctrl-btn" onclick="showToast('축소')">−</button>
+      <button class="map-ctrl-btn locate" onclick="goMyLocation()" title="내 위치">◎</button>
+    </div>
+
+    <!-- List button -->
+    <button class="list-btn" onclick="switchTab('list')">☰ 목록 보기</button>
+
+    <!-- Info Window -->
+    <div class="info-window" id="infoWindow">
+      <button class="iw-close" onclick="closeInfo()">✕</button>
+      <div class="iw-img" id="iwImg"><span id="iwEmoji">🍜</span>
+        <span class="iw-tag" id="iwTag">음식점</span>
+      </div>
+      <div class="iw-body">
+        <div class="iw-name" id="iwName">옛날국수집</div>
+        <div class="iw-addr">📍 <span id="iwAddr">서울특별시 마포구 합정동 123-4</span></div>
+        <div class="iw-stats">
+          <div class="iw-stat"><div class="iw-stat-val" id="iwPrice">5,000원</div><div class="iw-stat-lbl">최저가</div></div>
+          <div class="iw-stat"><div class="iw-stat-val" id="iwRating">4.7⭐</div><div class="iw-stat-lbl">평점</div></div>
+          <div class="iw-stat"><div class="iw-stat-val" id="iwReviews">128</div><div class="iw-stat-lbl">리뷰</div></div>
+        </div>
+        <div class="iw-desc" id="iwDesc">1970년대부터 이어온 손칼국수 전문점. 멸치육수 베이스의 진한 국물이 특징이며 점심 시간에 항상 줄이 늘어서는 숨은 맛집입니다.</div>
+        <div class="iw-actions">
+          <div class="iw-btn primary" onclick="showToast('길찾기 기능은 지도 API 연동 후 사용 가능합니다')">🗺 길찾기</div>
+          <div class="iw-btn secondary" onclick="showToast('즐겨찾기에 추가했습니다 ⭐')">☆ 저장</div>
+          <div class="iw-btn secondary" onclick="showToast('공유 링크가 복사되었습니다!')">↗ 공유</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab content: List -->
+    <div class="list-content" id="listContent">
+      <div style="font-size:18px;font-weight:800;margin-bottom:16px;margin-top:4px;">📍 전체 스팟 <span style="font-size:13px;font-weight:400;color:var(--text3)">총 9개</span></div>
+      <div class="list-grid" id="listGrid"></div>
+    </div>
+
+    <!-- Tab content: Ranking -->
+    <div class="tab-content" id="rankContent">
+      <div style="font-size:18px;font-weight:800;margin-bottom:16px;margin-top:4px;">🏆 이번 주 인기 랭킹</div>
+    </div>
+
+    <!-- Tab content: Community -->
+    <div class="tab-content" id="commContent">
+      <div class="community-wrap">
+        <div class="comm-banner" onclick="showToast('카카오톡 오픈채팅방으로 이동합니다!')">
+          <div class="comm-banner-title">💬 오픈채팅방 참여하기</div>
+          <div class="comm-banner-sub">스팟 정보를 이웃들과 실시간으로 공유해요</div>
+        </div>
+        <div class="filter-section-title" style="margin-bottom:12px;">최신 게시글</div>
+        <div class="post-item"><div class="post-title">강남역 근처 점심 2000원짜리 발견함!!🔥</div><div class="post-meta"><span>익명사용자</span><span>좋아요 142</span><span>5분 전</span></div></div>
+        <div class="post-item"><div class="post-title">홍대입구 3500원 카페 정보 공유합니다</div><div class="post-meta"><span>절약왕123</span><span>좋아요 87</span><span>23분 전</span></div></div>
+        <div class="post-item"><div class="post-title">신림 학식 vs 주변 식당 가성비 비교</div><div class="post-meta"><span>대학생A</span><span>좋아요 56</span><span>1시간 전</span></div></div>
+        <div class="post-item"><div class="post-title">편의점 할인 꿀조합 정리 (이번주 기준)</div><div class="post-meta"><span>짠돌이클럽</span><span>좋아요 201</span><span>3시간 전</span></div></div>
+        <div class="post-item"><div class="post-title">제보) 왕십리 국수집 5천원인데 양이 장난 아님</div><div class="post-meta"><span>왕십리주민</span><span>좋아요 33</span><span>어제</span></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM TAB -->
+<div class="bottom-tab">
+  <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">🗺 맵</button>
+  <button class="tab-btn" id="tab-list" onclick="switchTab('list')">☰ 목록</button>
+  <button class="tab-btn" id="tab-rank" onclick="switchTab('rank')">🏆 랭킹</button>
+  <button class="tab-btn" id="tab-comm" onclick="switchTab('comm')">💬 커뮤니티</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- REPORT MODAL -->
+<div class="overlay" id="reportOverlay" onclick="if(event.target===this)closeModal('reportOverlay')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('reportOverlay')">✕</button>
+    <div class="modal-title">📍 스팟 제보하기</div>
+    <div class="modal-sub">발견한 가성비 스팟을 공유해주세요! 관리자 검토 후 지도에 등록됩니다.</div>
+    <div class="form-group">
+      <label class="form-label">상호명 *</label>
+      <input class="form-input" placeholder="예: 동네 분식집, 이름없는 국수집">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">카테고리 *</label>
+        <select class="form-select">
+          <option>음식점</option><option>카페</option><option>편의점</option>
+          <option>분식</option><option>베이커리</option><option>기타</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">최저 가격 *</label>
+        <input class="form-input" placeholder="예: 5000">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">주소 *</label>
+      <input class="form-input" placeholder="도로명 주소 또는 지번 주소">
+    </div>
+    <div class="form-group">
+      <label class="form-label">상세 설명</label>
+      <textarea class="form-textarea" placeholder="메뉴, 운영 시간, 주차 여부 등 유용한 정보를 입력해주세요."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">사진 첨부 <span style="color:var(--text3)">(선택)</span></label>
+      <input class="form-input" type="file" accept="image/*" style="padding:8px 14px">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('reportOverlay')">취소</button>
+      <button class="btn-primary" onclick="submitReport()">✓ 제보 제출</button>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER MODAL -->
+<div class="overlay" id="filterOverlay" onclick="if(event.target===this)closeModal('filterOverlay')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('filterOverlay')">✕</button>
+    <div class="modal-title">⚙ 필터 설정</div>
+    <div class="modal-sub">원하는 조건만 골라서 볼 수 있어요.</div>
+
+    <div class="filter-section-title">카테고리</div>
+    <div class="filter-grid">
+      <div class="filter-option sel" onclick="this.classList.toggle('sel')">🍜 국수/면</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">🍱 도시락</div>
+      <div class="filter-option sel" onclick="this.classList.toggle('sel')">☕ 카페</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">🍛 분식</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">🍔 패스트푸드</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">🥗 샐러드</div>
+    </div>
+
+    <div class="filter-section-title">가격대</div>
+    <div class="filter-grid">
+      <div class="filter-option" onclick="selectPrice(this)">~3,000원</div>
+      <div class="filter-option sel" onclick="selectPrice(this)">~5,000원</div>
+      <div class="filter-option" onclick="selectPrice(this)">~7,000원</div>
+      <div class="filter-option" onclick="selectPrice(this)">~10,000원</div>
+      <div class="filter-option" onclick="selectPrice(this)">제한 없음</div>
+    </div>
+
+    <div class="filter-section-title">지역</div>
+    <div class="filter-grid">
+      <div class="filter-option" onclick="this.classList.toggle('sel')">강남구</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">마포구</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">종로구</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">홍대/합정</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">신림/관악</div>
+      <div class="filter-option" onclick="this.classList.toggle('sel')">전체</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="resetFilter()">초기화</button>
+      <button class="btn-primary" onclick="applyFilter()">필터 적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-box">
+    <span>🔍</span>
+    <input id="searchInput" placeholder="상호명, 주소, 메뉴를 검색하세요" oninput="doSearch(this.value)" autofocus>
+    <button style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px" onclick="closeSearch()">✕</button>
+  </div>
+  <div class="search-results" id="searchResults"></div>
+</div>
+
+<script>
+  const spots = [
+    { emoji:'🍜', name:'옛날국수집', addr:'서울 마포구 합정동 123-4', price:'5,000원', rating:'4.7⭐', reviews:128, tag:'국수', desc:'1970년대부터 이어온 손칼국수 전문점. 멸치육수 베이스의 진한 국물이 특징입니다.' },
+    { emoji:'🍱', name:'알뜰도시락', addr:'서울 종로구 내자동 55', price:'6,500원', rating:'4.5⭐', reviews:89, tag:'도시락', desc:'15가지 반찬이 함께 나오는 알뜰 도시락집. 매일 메뉴가 바뀝니다.' },
+    { emoji:'☕', name:'동네카페 한잔', addr:'서울 은평구 녹번동 201', price:'3,500원', rating:'4.8⭐', reviews:203, tag:'카페', desc:'아메리카노 2,000원부터 시작하는 동네 단골 카페. 사장님이 직접 볶는 원두를 사용합니다.' },
+    { emoji:'🍛', name:'인도카레 한그릇', addr:'서울 중구 을지로3가 14', price:'4,000원', rating:'4.3⭐', reviews:67, tag:'카레', desc:'점심 한정 카레 단일 메뉴 4천원. 매일 오후 2시에 소진됩니다.' },
+    { emoji:'🥗', name:'착한샐러드', addr:'서울 강남구 역삼동 789', price:'7,000원', rating:'4.6⭐', reviews:155, tag:'샐러드', desc:'유기농 채소로 만드는 건강 샐러드. 프로틴 추가 시 1,000원 추가.' },
+    { emoji:'🍜', name:'2500원 라면집', addr:'서울 동작구 상도동 33', price:'2,500원', rating:'4.4⭐', reviews:441, tag:'라면', desc:'봉지라면인데 이상하게 맛있음. 계란 토핑 무료. 포장만 가능.' },
+    { emoji:'🧋', name:'공차보다 맛있는집', addr:'서울 마포구 서교동 100', price:'4,500원', rating:'4.9⭐', reviews:312, tag:'음료', desc:'타피오카 펄이 쫄깃한 수제 버블티 전문점. 당도 조절 가능.' },
+    { emoji:'🍔', name:'할매버거', addr:'서울 동대문구 전농동 77', price:'5,500원', rating:'4.2⭐', reviews:99, tag:'버거', desc:'50년 전통의 수제버거. 패티가 두꺼워서 하나만 먹어도 든든합니다.' },
+    { emoji:'🍣', name:'회전초밥 천국', addr:'서울 중랑구 면목동 42', price:'6,000원', rating:'4.5⭐', reviews:178, tag:'초밥', desc:'1접시 2000원, 3접시 6000원 균일가. 재료 소진 시 영업 종료.' }
+  ];
+
+  // Populate list view
+  const listGrid = document.getElementById('listGrid');
+  spots.forEach((s, i) => {
+    listGrid.innerHTML += `<div class="list-card" onclick="openInfo(${i})">
+      <div class="list-card-img">${s.emoji}</div>
+      <div class="list-card-body">
+        <div class="list-card-name">${s.name}</div>
+        <div class="list-card-meta"><span style="color:var(--text3);font-size:11px">${s.tag}</span><span style="font-weight:700;color:var(--warn)">${s.price}</span></div>
+      </div>
+    </div>`;
+  });
+
+  // Populate ranking
+  const rankContent = document.getElementById('rankContent');
+  rankContent.innerHTML += '<div style="font-size:18px;font-weight:800;margin-bottom:16px;margin-top:4px;">🏆 이번 주 인기 랭킹</div>';
+  const rankStyles = ['gold','silver','bronze','normal','normal','normal','normal','normal','normal'];
+  const sorted = [...spots].sort((a,b) => b.reviews - a.reviews);
+  sorted.forEach((s, i) => {
+    rankContent.innerHTML += `<div class="rank-item" onclick="switchTab('map');setTimeout(()=>openInfo(spots.indexOf(s)),300)">
+      <div class="rank-num ${rankStyles[i]}">${i+1}</div>
+      <div class="rank-thumb">${s.emoji}</div>
+      <div class="rank-info">
+        <div class="rank-name">${s.name}</div>
+        <div class="rank-score"><span>리뷰 ${s.reviews}개</span><span>${s.rating}</span><span style="color:var(--warn)">${s.price}</span></div>
+      </div>
+      <div class="rank-badge">TOP ${i+1}</div>
+    </div>`;
+  });
+
+  function openInfo(idx) {
+    const s = spots[idx];
+    document.getElementById('iwEmoji').textContent = s.emoji;
+    document.getElementById('iwTag').textContent = s.tag;
+    document.getElementById('iwName').textContent = s.name;
+    document.getElementById('iwAddr').textContent = s.addr;
+    document.getElementById('iwPrice').textContent = s.price;
+    document.getElementById('iwRating').textContent = s.rating;
+    document.getElementById('iwReviews').textContent = s.reviews;
+    document.getElementById('iwDesc').textContent = s.desc;
+    document.getElementById('infoWindow').classList.add('show');
+  }
+  function closeInfo() { document.getElementById('infoWindow').classList.remove('show'); }
+
+  function toggleChip(el) {
+    el.classList.toggle('active');
+    const x = el.querySelector('.chip-x');
+    if (el.classList.contains('active')) {
+      if (!x) el.innerHTML += ' <span class="chip-x">✕</span>';
+    } else {
+      if (x) x.remove();
+    }
+  }
+
+  function openReport() { document.getElementById('reportOverlay').classList.add('show'); }
+  function openFilter() { document.getElementById('filterOverlay').classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+  function submitReport() {
+    closeModal('reportOverlay');
+    showToast('✅ 제보가 접수되었습니다! 관리자 검토 후 등록됩니다.');
+  }
+
+  function applyFilter() {
+    closeModal('filterOverlay');
+    showToast('✅ 필터가 적용되었습니다');
+  }
+  function resetFilter() {
+    document.querySelectorAll('#filterOverlay .filter-option').forEach(el => el.classList.remove('sel'));
+    showToast('필터가 초기화되었습니다');
+  }
+  function selectPrice(el) {
+    document.querySelectorAll('#filterOverlay .filter-grid:nth-of-type(2) .filter-option').forEach(e => e.classList.remove('sel'));
+    el.classList.add('sel');
+  }
+
+  function openSearch() {
+    document.getElementById('searchOverlay').classList.add('show');
+    setTimeout(() => document.getElementById('searchInput').focus(), 100);
+  }
+  function closeSearch() {
+    document.getElementById('searchOverlay').classList.remove('show');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+  }
+  function doSearch(q) {
+    const res = document.getElementById('searchResults');
+    if (!q.trim()) { res.innerHTML = ''; return; }
+    const filtered = spots.filter(s => s.name.includes(q) || s.addr.includes(q) || s.tag.includes(q) || s.price.includes(q));
+    if (!filtered.length) { res.innerHTML = '<div style="color:var(--text3);text-align:center;padding:20px">검색 결과가 없습니다</div>'; return; }
+    res.innerHTML = filtered.map((s, i) => `<div class="search-result-item" onclick="closeSearch();openInfo(spots.indexOf(s))">
+      <div class="sr-icon">${s.emoji}</div>
+      <div><div class="sr-name">${s.name}</div><div class="sr-addr">${s.addr} · ${s.price}</div></div>
+    </div>`).join('');
+    // Re-bind onclick after innerHTML
+    res.querySelectorAll('.search-result-item').forEach((el, i) => {
+      el.onclick = () => { closeSearch(); openInfo(spots.indexOf(filtered[i])); };
+    });
+  }
+
+  function goMyLocation() {
+    showToast('📍 내 위치로 이동합니다');
+    const dot = document.getElementById('myLoc');
+    dot.style.transition = 'all .8s ease-out';
+    dot.style.left = '48%'; dot.style.top = '55%';
+  }
+
+  let currentTab = 'map';
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+
+    const listContent = document.getElementById('listContent');
+    const rankContent = document.getElementById('rankContent');
+    const commContent = document.getElementById('commContent');
+
+    listContent.classList.remove('active');
+    rankContent.classList.remove('active');
+    commContent.classList.remove('active');
+
+    if (tab === 'list') listContent.classList.add('active');
+    if (tab === 'rank') rankContent.classList.add('active');
+    if (tab === 'comm') commContent.classList.add('active');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // keyboard close
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeSearch();
+      closeModal('reportOverlay');
+      closeModal('filterOverlay');
+      closeInfo();
+    }
+  });
+</script>
+</body>
+</html>

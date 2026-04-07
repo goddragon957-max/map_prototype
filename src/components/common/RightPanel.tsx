@@ -6,44 +6,56 @@ import { mapStore, Spot } from '@/store/mapStore';
 
 const RightPanel = observer(() => {
   return (
-    <Box className="fixed top-[110px] right-4 w-[270px] z-50 flex flex-col gap-2.5 pointer-events-none">
-      <Box className="glass-card overflow-hidden pointer-events-auto">
-        <Box className="px-3.5 py-3 flex items-center justify-between border-b border-border">
-          <Box className="text-[12px] font-bold tracking-[0.5px] text-text2 uppercase flex items-center gap-1.5">
-            <Box className="w-1.5 h-1.5 rounded-full bg-accent" />
+    <Box className="fixed top-[104px] right-4 w-[280px] z-50 flex flex-col gap-3 pointer-events-none">
+      <Box className="glass-card overflow-hidden pointer-events-auto shadow-2xl">
+        <Box className="px-4 py-3 flex items-center justify-between border-b border-border/60">
+          <Box className="text-[12px] font-extrabold tracking-[0.5px] text-text uppercase flex items-center gap-2">
+            <Box className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             최근 등록 스팟
           </Box>
-          <Typography component="span" className="text-[11px] text-text3 cursor-pointer hover:text-accent transition-colors">
+          <Typography component="span" className="text-[11px] font-bold text-text3 cursor-pointer hover:text-accent transition-colors">
             전체보기 →
           </Typography>
         </Box>
         
-        <Box className="max-h-[400px] overflow-y-auto">
-          {mapStore.spots.map((spot: Spot) => (
+        <Box className="max-h-[420px] overflow-y-auto custom-scrollbar">
+          {mapStore.spots.map((spot: Spot, index) => (
             <Box 
               key={spot.id}
-              onClick={() => mapStore.setSelectedSpot(spot)}
-              className="p-3.5 flex gap-2.5 items-center border-b border-border/50 cursor-pointer hover:bg-accent/5 transition-colors last:border-b-0"
+              onClick={() => {
+                mapStore.setCenter(spot.lat, spot.lng);
+                mapStore.setSelectedSpot(spot);
+              }}
+              className="p-3.5 flex gap-3 items-center border-b border-border/40 cursor-pointer hover:bg-white/5 transition-all group last:border-b-0"
             >
-              <Box className="w-11 h-11 shrink-0 rounded-lg bg-surface2 border border-border flex items-center justify-center text-[20px]">
+              {/* Thumbnail Container */}
+              <Box className="w-10 h-10 shrink-0 rounded-lg bg-surface2 border border-border/80 flex items-center justify-center text-[20px] group-hover:scale-105 transition-transform">
                 {spot.emoji}
               </Box>
+
+              {/* Info Container */}
               <Box className="flex-1 min-w-0">
-                <Typography className="text-[13px] font-semibold text-text mb-0.5 truncate">
+                <Typography className="text-[13px] font-bold text-text mb-0.5 truncate group-hover:text-accent transition-colors">
                   {spot.name}
                 </Typography>
-                <Box className="flex items-center gap-1.5">
-                    <Box className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                        spot.category === '카페' ? 'bg-accent2/10 text-accent2' : 'bg-accent/10 text-accent'
+                <Box className="flex items-center gap-2 overflow-hidden">
+                    <Box className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 border uppercase tracking-wider ${
+                        spot.category === '카페' 
+                        ? 'bg-accent2/10 text-accent2 border-accent2/20' 
+                        : spot.category === '분식' 
+                          ? 'bg-warn/10 text-warn border-warn/20'
+                          : 'bg-accent/10 text-accent border-accent/20'
                     }`}>
                         {spot.category}
                     </Box>
-                    <Typography className="text-[11px] text-text3 truncate">
+                    <Typography className="text-[11px] text-text3 truncate font-medium">
                         {spot.address.split(' ').slice(0, 2).join(' ')}
                     </Typography>
                 </Box>
               </Box>
-              <Typography className="text-[12px] font-bold text-warn shrink-0">
+
+              {/* Price Container */}
+              <Typography className="text-[13px] font-black text-warn shrink-0 tracking-tight">
                 {spot.price}
               </Typography>
             </Box>
