@@ -1,28 +1,56 @@
 import React from "react";
-import { Typography as MuiTypography, TypographyProps } from "@mui/material";
 
-interface Props extends TypographyProps {
-  weight?: "regular" | "semibold" | "bold";
+import { cn } from "@/lib/utils";
+
+type TypographyVariant = "body1" | "body2" | "h1" | "h2" | "h3";
+type TypographyWeight = "regular" | "semibold" | "bold";
+
+interface Props extends React.HTMLAttributes<HTMLElement> {
+  component?: React.ElementType;
+  variant?: TypographyVariant;
+  weight?: TypographyWeight;
+  sx?: React.CSSProperties;
 }
 
-const Typography = ({ variant = "body1", weight = "regular", sx, children, ...props }: Props) => {
-  const fontWeightMap = {
-    regular: 400,
-    semibold: 600,
-    bold: 700,
-  };
+const variantTagMap: Record<TypographyVariant, React.ElementType> = {
+  body1: "p",
+  body2: "p",
+  h1: "h1",
+  h2: "h2",
+  h3: "h3",
+};
+
+const variantClassMap: Record<TypographyVariant, string> = {
+  body1: "text-base",
+  body2: "text-sm",
+  h1: "text-4xl font-bold tracking-tight",
+  h2: "text-2xl font-bold tracking-tight",
+  h3: "text-xl font-semibold tracking-tight",
+};
+
+const weightClassMap: Record<TypographyWeight, string> = {
+  regular: "font-normal",
+  semibold: "font-semibold",
+  bold: "font-bold",
+};
+
+const Typography = ({
+  component,
+  variant = "body1",
+  weight = "regular",
+  className,
+  sx,
+  style,
+  ...props
+}: Props) => {
+  const Component = component ?? variantTagMap[variant];
 
   return (
-    <MuiTypography
-      variant={variant}
-      sx={{
-        fontWeight: fontWeightMap[weight],
-        ...sx,
-      }}
+    <Component
+      className={cn(variantClassMap[variant], weightClassMap[weight], className)}
+      style={{ ...sx, ...style }}
       {...props}
-    >
-      {children}
-    </MuiTypography>
+    />
   );
 };
 

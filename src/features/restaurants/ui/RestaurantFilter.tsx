@@ -2,43 +2,89 @@ import React from "react";
 import { observer } from "mobx-react-lite";
 import Box from "@/components/common/Box";
 import Button from "@/components/common/Button";
-import { restaurantStore } from "@/features/restaurants/model/restaurantStore";
+import Typography from "@/components/common/Typography";
+import { cn } from "@/lib/utils";
+import { mapStore } from "@/store/mapStore";
 
-const categories = ["전체", "한식", "면요리", "일식", "분식", "도시락", "카페"];
+interface RestaurantFilterProps {
+  className?: string;
+  withContainer?: boolean;
+}
 
-const RestaurantFilter = observer(() => {
-  return (
-    <Box className="floating-panel glass-card p-2 rounded-[20px] bg-white/72 backdrop-blur-xl border-white/55 grid gap-2.5 shadow-xl">
-      {/* Small Search Bar */}
-      <Box className="flex items-center min-h-[2.4rem] px-3.5 rounded-full border border-slate-200 bg-white/80 focus-within:ring-2 focus-within:ring-blue-400">
-        <input
-          type="search"
-          placeholder="가게명/지역 검색"
-          className="w-full border-0 outline-none bg-transparent text-xs font-semibold"
-          value={restaurantStore.searchQuery}
-          onChange={(e) => restaurantStore.setSearchQuery(e.target.value)}
-        />
+const RestaurantFilter = observer(
+  ({ className, withContainer = true }: RestaurantFilterProps) => {
+    const filterBody = (
+      <>
+        <Box className="grid gap-1">
+          <Typography className="text-[11px] font-bold uppercase tracking-[0.14em] text-text3">
+            검색
+          </Typography>
+          <Box className="flex min-h-[2.75rem] items-center rounded-full border border-border bg-surface2/80 px-3.5 focus-within:border-accent2 focus-within:ring-2 focus-within:ring-accent2/20">
+            <input
+              type="search"
+              placeholder="가게명 / 주소 / 카테고리"
+              className="w-full border-0 bg-transparent text-[13px] font-medium text-text outline-none placeholder:text-text3"
+              value={mapStore.searchQuery}
+              onChange={(e) => mapStore.setSearchQuery(e.target.value)}
+            />
+          </Box>
+        </Box>
+
+        <Box className="grid gap-1.5">
+          <Box className="flex items-center justify-between gap-3">
+            <Typography className="text-[11px] font-bold uppercase tracking-[0.14em] text-text3">
+              카테고리
+            </Typography>
+            <button
+              type="button"
+              onClick={() => mapStore.clearFilters()}
+              className="text-[11px] font-semibold text-text3 transition-colors hover:text-accent"
+            >
+              초기화
+            </button>
+          </Box>
+          <Box className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+            {mapStore.filterCategories.map((cat) => (
+              <Button
+                key={cat}
+                variant={mapStore.selectedCategory === cat ? "contained" : "text"}
+                onClick={() => mapStore.setSelectedCategory(cat)}
+                className={cn(
+                  "min-h-8 rounded-full px-3 text-[12px] font-bold whitespace-nowrap transition-all",
+                  mapStore.selectedCategory === cat
+                    ? "bg-accent text-bg hover:opacity-95"
+                    : "bg-surface2/70 text-text2 hover:bg-surface2 hover:text-text"
+                )}
+              >
+                {cat}
+              </Button>
+            ))}
+          </Box>
+        </Box>
+
+        <Box className="rounded-2xl border border-border/80 bg-surface/60 px-3 py-2">
+          <Typography className="text-[12px] font-medium text-text2">
+            현재 조건에 맞는 스팟 <span className="font-black text-accent">{mapStore.filteredSpots.length}개</span>
+          </Typography>
+        </Box>
+      </>
+    );
+
+    if (!withContainer) {
+      return <Box className={cn("grid gap-3", className)}>{filterBody}</Box>;
+    }
+
+    return (
+      <Box
+        className={cn(
+          "floating-panel glass-card grid gap-3 rounded-[24px] border-border/80 bg-surface/92 p-3 shadow-xl",
+          className
+        )}
+      >
+        {filterBody}
       </Box>
-
-      {/* Category Horizontal Chips */}
-      <Box className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-hide">
-        {categories.map((cat) => (
-          <Button
-            key={cat}
-            variant={restaurantStore.selectedCategory === cat ? "contained" : "text"}
-            onClick={() => restaurantStore.setSelectedCategory(cat)}
-            className={`min-h-7 px-2.5 rounded-full text-[0.72rem] font-bold whitespace-nowrap transition-all ${
-              restaurantStore.selectedCategory === cat
-                ? "bg-slate-800 text-white"
-                : "bg-white/60 text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            {cat}
-          </Button>
-        ))}
-      </Box>
-    </Box>
-  );
-});
+    );
+  }
+);
 
 export default RestaurantFilter;

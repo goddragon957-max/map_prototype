@@ -6,7 +6,7 @@ import { mapStore } from "@/store/mapStore";
 
 const RestaurantRanking = observer(() => {
   // Use mapStore spots for ranking (sorted by rating/reviews as a proxy for popularity)
-  const rankingSpots = [...mapStore.spots]
+  const rankingSpots = [...mapStore.filteredSpots]
     .sort((a, b) => b.reviews - a.reviews)
     .slice(0, 10);
 

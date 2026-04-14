@@ -12,6 +12,7 @@ import InfoWindow from "@/features/restaurants/ui/InfoWindow";
 import SpotGrid from "@/features/restaurants/ui/SpotGrid";
 import RestaurantRanking from "@/features/restaurants/ui/RestaurantRanking";
 import CommunityFeed from "@/features/community/ui/CommunityFeed";
+import MobileFilterSheet from "@/features/restaurants/ui/MobileFilterSheet";
 import SubmitModal from "@/features/restaurants/ui/SubmitModal";
 import Toast from "@/components/common/Toast";
 import { uiStore } from "@/store/uiStore";
@@ -34,7 +35,7 @@ const Home = observer(() => {
       <Header />
       
       {/* ── MAIN CONTENT AREA ── */}
-      <Box className="relative w-full h-full pt-[94px] pb-[50px]">
+      <Box className="relative w-full h-full pt-[138px] pb-[50px] sm:pt-[94px]">
         {/* Layer 0: The Map */}
         <KakaoMapBackground />
 
@@ -76,6 +77,7 @@ const Home = observer(() => {
       <BottomTab />
 
       {/* ── OVERLAYS/MODALS ── */}
+      <MobileFilterSheet />
       <SubmitModal />
       <Toast />
 

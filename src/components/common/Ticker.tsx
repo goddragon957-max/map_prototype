@@ -1,6 +1,5 @@
 import React from 'react';
 import Box from '@/components/common/Box';
-import Typography from '@/components/common/Typography';
 
 const Ticker = () => {
   const messages = [

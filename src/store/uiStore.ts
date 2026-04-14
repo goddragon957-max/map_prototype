@@ -6,6 +6,7 @@ export const createUiStore = () => {
   const store = {
     mode: "map" as ViewMode,
     isSubmitModalOpen: false,
+    isFilterSheetOpen: false,
 
     setMode(mode: ViewMode) {
       this.mode = mode;
@@ -22,6 +23,10 @@ export const createUiStore = () => {
 
     setSubmitModalOpen(open: boolean) {
       this.isSubmitModalOpen = open;
+    },
+
+    setFilterSheetOpen(open: boolean) {
+      this.isFilterSheetOpen = open;
     },
   };
 

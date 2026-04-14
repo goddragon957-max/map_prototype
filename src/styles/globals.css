@@ -16,6 +16,23 @@
   --radius-sm: 8px;
   --shadow-main: 0 8px 32px rgba(0,0,0,0.5);
   --shadow-sm: 0 2px 12px rgba(0,0,0,0.3);
+  --color-background: #0d0f14;
+  --color-foreground: #e8edf5;
+  --color-card: #161a22;
+  --color-card-foreground: #e8edf5;
+  --color-popover: #161a22;
+  --color-popover-foreground: #e8edf5;
+  --color-primary: #6ee7b7;
+  --color-primary-foreground: #0d0f14;
+  --color-secondary: #1e2430;
+  --color-secondary-foreground: #e8edf5;
+  --color-muted: #1a1f29;
+  --color-muted-foreground: #8b95a8;
+  --color-accent-foreground: #0d0f14;
+  --color-destructive: #f43f5e;
+  --color-destructive-foreground: #fff1f2;
+  --color-input: #2a3040;
+  --color-ring: #38bdf8;
 }
 
 body {
@@ -45,6 +62,17 @@ body {
   border-color: #6ee7b7;
 }
 
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none,
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -58,3 +86,7 @@ body {
 @keyframes ring { 0% { transform: scale(1); opacity:.6; } 100% { transform: scale(1.8); opacity:0; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+* {
+  border-color: rgb(42 48 64 / 1);
+}

@@ -76,6 +76,8 @@ class MapStore {
   ];
 
   selectedSpot: Spot | null = null;
+  searchQuery = "";
+  selectedCategory = "전체";
   center = { lat: 37.55, lng: 126.97 }; // Default center (Seoul)
 
   constructor() {
@@ -87,6 +89,51 @@ class MapStore {
     if (spot) {
       this.center = { lat: spot.lat, lng: spot.lng };
     }
+  }
+
+  get filterCategories() {
+    return ["전체", ...new Set(this.spots.map((spot) => spot.category))];
+  }
+
+  get filteredSpots() {
+    const normalizedQuery = this.searchQuery.trim().toLowerCase();
+
+    return this.spots.filter((spot) => {
+      const matchesCategory =
+        this.selectedCategory === "전체" || spot.category === this.selectedCategory;
+      const matchesQuery =
+        normalizedQuery.length === 0 ||
+        [spot.name, spot.address, spot.category].some((field) =>
+          field.toLowerCase().includes(normalizedQuery)
+        );
+
+      return matchesCategory && matchesQuery;
+    });
+  }
+
+  syncSelectedSpotWithFilters() {
+    if (
+      this.selectedSpot &&
+      !this.filteredSpots.some((spot) => spot.id === this.selectedSpot?.id)
+    ) {
+      this.selectedSpot = null;
+    }
+  }
+
+  setSearchQuery(query: string) {
+    this.searchQuery = query;
+    this.syncSelectedSpotWithFilters();
+  }
+
+  setSelectedCategory(category: string) {
+    this.selectedCategory = category;
+    this.syncSelectedSpotWithFilters();
+  }
+
+  clearFilters() {
+    this.searchQuery = "";
+    this.selectedCategory = "전체";
+    this.syncSelectedSpotWithFilters();
   }
 
   setCenter(lat: number, lng: number) {

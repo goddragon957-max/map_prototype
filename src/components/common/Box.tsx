@@ -1,12 +1,21 @@
 import React from "react";
-import { Box as MuiBox, BoxProps } from "@mui/material";
 
-const Box = ({ className, children, ...props }: BoxProps) => {
-  return (
-    <MuiBox className={className} {...props}>
-      {children}
-    </MuiBox>
-  );
+type ElementType = React.ElementType;
+
+type BoxProps<C extends ElementType = "div"> = {
+  component?: C;
+  sx?: React.CSSProperties;
+} & Omit<React.ComponentPropsWithoutRef<C>, "component">;
+
+const Box = <C extends ElementType = "div">({
+  component,
+  sx,
+  style,
+  ...props
+}: BoxProps<C>) => {
+  const Component = component ?? "div";
+
+  return <Component style={{ ...sx, ...style }} {...props} />;
 };
 
 export default Box;

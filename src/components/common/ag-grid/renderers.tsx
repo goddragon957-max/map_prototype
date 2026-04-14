@@ -11,7 +11,7 @@ export const EllipsisRenderer = (params: ICellRendererParams) => {
     <Box
       title={params.value}
       className="truncate w-full h-full flex items-center"
-      sx={{ display: 'inline-block', verticalAlign: 'middle' }}
+      style={{ display: "inline-block", verticalAlign: "middle" }}
     >
       {params.value}
     </Box>

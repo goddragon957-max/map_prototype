@@ -5,7 +5,7 @@ import Typography from "@/components/common/Typography";
 import { mapStore } from "@/store/mapStore";
 
 const SpotGrid = observer(() => {
-  const rowData = mapStore.spots;
+  const rowData = mapStore.filteredSpots;
 
   return (
     <Box className="flex flex-col gap-6">

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
+import { LocateFixed, Minus, Plus } from "lucide-react";
 import { Map, CustomOverlayMap } from "react-kakao-maps-sdk";
 import Box from "@/components/common/Box";
 import Typography from "@/components/common/Typography";
 import Button from "@/components/common/Button";
-import { mapStore, Spot } from "@/store/mapStore";
+import { mapStore } from "@/store/mapStore";
 
 const KakaoMapBackground = observer(() => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -68,7 +69,7 @@ const KakaoMapBackground = observer(() => {
         onCreate={setMap}
         onClick={() => mapStore.setSelectedSpot(null)}
       >
-        {mapStore.spots.map((spot) => (
+        {mapStore.filteredSpots.map((spot) => (
           <CustomOverlayMap 
             key={spot.id} 
             position={{ lat: spot.lat, lng: spot.lng }} 
@@ -102,21 +103,24 @@ const KakaoMapBackground = observer(() => {
       <Box className="fixed right-4 bottom-16 z-50 flex flex-col gap-1.5">
         <Button 
           onClick={() => map?.setLevel(map.getLevel() - 1)}
+          aria-label="지도 확대"
           className="w-10 h-10 min-w-0 p-0 rounded-lg bg-surface border border-border text-text hover:border-accent hover:text-accent shadow-sm"
         >
-          +
+          <Plus className="h-[18px] w-[18px]" />
         </Button>
         <Button 
           onClick={() => map?.setLevel(map.getLevel() + 1)}
+          aria-label="지도 축소"
           className="w-10 h-10 min-w-0 p-0 rounded-lg bg-surface border border-border text-text hover:border-accent hover:text-accent shadow-sm"
         >
-          −
+          <Minus className="h-[18px] w-[18px]" />
         </Button>
         <Button 
           onClick={goMyLocation}
+          aria-label="내 위치로 이동"
           className="w-10 h-10 min-w-0 p-0 rounded-lg bg-surface border border-accent2 text-accent2 hover:bg-surface2 transition-all shadow-sm"
         >
-          ◎
+          <LocateFixed className="h-[18px] w-[18px]" />
         </Button>
       </Box>
 
